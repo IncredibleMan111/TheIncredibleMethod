@@ -985,6 +985,28 @@ function UILibrary:LoadWindow(Title, Size)
                 DropdownSelection.Parent = Section.Options
             end
 
+            -- Add TextBox for Whitelist
+            function ElementLibrary.TextBox(Title, Callback)
+                local TextBox = Clone(GuiObjects.Elements.TextBox);
+                TextBox.Title.Text = Title
+                TextBox.Parent = Section.Options
+
+                AddConnection(CConnect(TextBox.Input.FocusLost, function()
+                    Callback(TextBox.Input.Text);
+                end));
+            end
+
+            -- Add Button for Config
+            function ElementLibrary.Button(Title, Callback)
+                local Button = Clone(GuiObjects.Elements.Button);
+                Button.Title.Text = Title
+                Button.Parent = Section.Options
+
+                AddConnection(CConnect(Button.MouseButton1Click, function()
+                    Callback();
+                end));
+            end
+
             return ElementLibrary
 
         end
