@@ -39,8 +39,6 @@ local upper = string.upper
 local random = math.random
 
 local DefaultSettings = {
-    ConfigName = "Default", -- Added config name
-    Whitelist = {}, -- Added whitelist
     Esp = {
         NamesEnabled = false,
         DisplayNamesEnabled = false,
@@ -56,7 +54,6 @@ local DefaultSettings = {
         Size = 16,
         RenderDistance = 9e9,
         Color = Color3.fromRGB(19, 130, 226),
-        WhitelistColor = Color3.fromRGB(0, 255, 0), -- Added whitelist color
         OutlineColor = Color3new(),
         TracerTo = "Head",
         BlacklistedTeams = {}
@@ -82,6 +79,7 @@ local DefaultSettings = {
         BlacklistedTeams = {}
     },
     WindowPosition = UDim2.new(0.5, -200, 0.5, -139);
+
     Version = 1.2
 }
 
@@ -144,49 +142,25 @@ do
     end
 end
 
-local GetConfig = function(ConfigName)
-    local read, data = pcall(readfile, "SWAYSMENU/" .. ConfigName .. ".json");
+local GetConfig = function()
+    local read, data = pcall(readfile, "SWAYSMENU.json");
     local canDecode, config = pcall(HttpService.JSONDecode, HttpService, data);
     if (read and canDecode) then
         local Decoded = DecodeConfig(config);
         if (Decoded.Version ~= DefaultSettings.Version) then
             local Encoded = HttpService:JSONEncode(EncodeConfig(DefaultSettings));
-            writefile("SWAYSMENU/" .. ConfigName .. ".json", Encoded);
+            writefile("SWAYSMENU.json", Encoded);
             return DefaultSettings;
         end
         return Decoded;
     else
         local Encoded = HttpService:JSONEncode(EncodeConfig(DefaultSettings));
-        writefile("SWAYSMENU/" .. ConfigName .. ".json", Encoded);
+        writefile("SWAYSMENU.json", Encoded);
         return DefaultSettings
     end
 end
 
-local SaveConfig = function(ConfigName)
-    local Encoded = HttpService:JSONEncode(EncodeConfig(Settings));
-    writefile("SWAYSMENU/" .. ConfigName .. ".json", Encoded);
-end
-
-local DeleteConfig = function(ConfigName)
-    pcall(delfile, "SWAYSMENU/" .. ConfigName .. ".json");
-end
-
-local ListConfigs = function()
-    local Configs = {}
-    for _, File in pairs(listfiles("SWAYSMENU")) do
-        if (File:match(".json$")) then
-            table.insert(Configs, File:gsub("SWAYSMENU\\", ""):gsub(".json", ""));
-        end
-    end
-    return Configs
-end
-
--- Ensure SWAYSMENU folder exists
-if not isfolder("SWAYSMENU") then
-    makefolder("SWAYSMENU");
-end
-
-local Settings = GetConfig("Default");
+local Settings = GetConfig();
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse();
@@ -326,6 +300,7 @@ local SetProperties = function(Properties)
     end
 end
 
+
 local GetClosestPlayerAndRender = function()
     MouseVector = Vector2new(Mouse.X, Mouse.Y + Inset);
     local Closest = create(4);
@@ -362,19 +337,7 @@ local GetClosestPlayerAndRender = function()
             local Vector3Magnitude = LocalRoot and (RedirectPos - LocalRoot.Position).Magnitude or math.huge
             local InRenderDistance = Vector3Magnitude <= EspSettings.RenderDistance
 
-            -- Check if player is whitelisted
-            local IsWhitelisted = Tfind(Settings.Whitelist, Player.Name);
-            if (IsWhitelisted) then
-                PlayerDrawings.Text.Color = EspSettings.WhitelistColor
-                PlayerDrawings.Box.Color = EspSettings.WhitelistColor
-                PlayerDrawings.Tracer.Color = EspSettings.WhitelistColor
-            else
-                PlayerDrawings.Text.Color = EspSettings.Color
-                PlayerDrawings.Box.Color = EspSettings.Color
-                PlayerDrawings.Tracer.Color = EspSettings.Color
-            end
-
-            if (not Tfind(AimbotSettings.BlacklistedTeams, PlayerTeam) and not IsWhitelisted) then
+            if (not Tfind(AimbotSettings.BlacklistedTeams, PlayerTeam)) then
                 local InFovRadius = Vector2Magnitude <= FOV.Radius
                 if (InFovRadius) then
                     if (Visible and Vector2Magnitude <= Vector2Distance and AimbotSettings.ClosestCursor) then
@@ -438,7 +401,7 @@ local GetClosestPlayerAndRender = function()
                     ClosestPart = nil
                     Distance = math.huge
                     for i2, Pos in next, Parts do
-                        local Mag = (Pos - Vector2new(tuple.X, CurrentCamera.ViewportSize.Y)).Magnitude;
+                        local Mag = (Pos - Vector2new(Tuple.X, CurrentCamera.ViewportSize.Y)).Magnitude;
                         if (Mag <= Distance) then
                             ClosestPart = Pos
                             Distance = Mag
@@ -474,7 +437,7 @@ local GetClosestPlayerAndRender = function()
                     PlayerDrawings.Box.PointD = Vector2new(Right.X, Bottom.Y);
                 end
 
-                if (EspSettings.TeamColors and not IsWhitelisted) then
+                if (EspSettings.TeamColors) then
                     local TeamColor;
                     if (PlayerTeam) then
                         local BrickTeamColor = PlayerTeam.TeamColor
@@ -527,7 +490,7 @@ end);
 local ClosestCharacter, Vector, Player, Aimlock;
 RunService.RenderStepped:Connect(function()
     ClosestCharacter, Vector, Player, Aimlock = GetClosestPlayerAndRender();
-    if (Locked and AimbotSettings.Enabled and ClosestCharacter and not Tfind(Settings.Whitelist, Player.Name)) then
+    if (Locked and AimbotSettings.Enabled and ClosestCharacter) then
         if (AimbotSettings.FirstPerson) then
             if (syn) then
                 CurrentCamera.CoordinateFrame = CFramenew(CurrentCamera.CoordinateFrame.p, Aimlock.Position);
@@ -540,46 +503,147 @@ RunService.RenderStepped:Connect(function()
     end
 end);
 
+local Hooks = {
+    HookedFunctions = {},
+    OldMetaMethods = {},
+    MetaMethodHooks = {},
+    HookedSignals = {}
+}
+
+local OtherDeprecated = {
+    children = "GetChildren"
+}
+
+local RealMethods = {}
+local FakeMethods = {}
+
+local HookedFunctions = Hooks.HookedFunctions
+local MetaMethodHooks = Hooks.MetaMethodHooks
+local OldMetaMethods = Hooks.OldMetaMethods
+
+local randomised = random(1, 10);
+local randomisedVector = Vector3new(random(1, 10), random(1, 10), random(1, 10));
+Mouse.Move:Connect(function()
+    randomised = random(1, 10);
+    randomisedVector = Vector3new(random(1, 10), random(1, 10), random(1, 10));
+end);
+
+local x = setmetatable({}, {
+    __index = function(...)
+        print("index", ...);
+    end,
+    __add = function(...)
+        print("add", ...);
+    end,
+    __sub = function(...)
+        print("sub", ...);
+    end,
+    __mul = function(...)
+        print("mul", ...);
+    end
+});
+
+MetaMethodHooks.Index = function(...)
+    local __Index = OldMetaMethods.__index
+
+    if (Player and Aimlock and ... == Mouse and not checkcaller()) then
+        local CallingScript = getfenv(2).script;
+        if (CallingScript.Name == "CallingScript") then
+            return __Index(...);
+        end
+
+        local _Mouse, Index = ...
+        if (type(Index) == 'string') then
+            Index = gsub(sub(Index, 0, 100), "%z.*", "");
+        end
+        local PassedChance = random(1, 100) < AimbotSettings.SilentAimHitChance
+        if (PassedChance and AimbotSettings.SilentAim) then
+            local Parts = GetPartsObscuringTarget(CurrentCamera, {CurrentCamera.CFrame.Position, Aimlock.Position}, {LocalPlayer.Character, ClosestCharacter});
+
+            Index = string.gsub(Index, "^%l", upper);
+            local Hit = #Parts == 0 or AimbotSettings.Wallbang
+            if (not Hit) then
+                return __Index(...);
+            end
+            if (Index == "Target") then
+                return Aimlock
+            end
+            if (Index == "Hit") then
+                local hit = __Index(...);
+                local pos = Aimlock.Position + randomisedVector / 10
+                return CFramenew(pos.X, pos.Y, pos.Z, unpack({hit:components()}, 4));
+            end
+            if (Index == "X") then
+                return Vector.X + randomised / 10
+            end
+            if (Index == "Y") then
+                return Vector.Y + randomised / 10
+            end
+        end
+    end
+
+    return __Index(...);
+end
+
+MetaMethodHooks.Namecall = function(...)
+    local __Namecall = OldMetaMethods.__namecall
+    local self = ...
+    local Method = gsub(getnamecallmethod() or "", "^%l", upper);
+    local Hooked = HookedFunctions[Method]
+    if (Hooked and self == Hooked[1]) then
+        return Hooked[3](...);
+    end
+
+    return __Namecall(...);
+end
+
+for MMName, MMFunc in pairs(MetaMethodHooks) do
+    local MetaMethod = string.format("__%s", string.lower(MMName));
+    Hooks.OldMetaMethods[MetaMethod] = hookmetamethod(game, MetaMethod, MMFunc);
+end
+
+HookedFunctions.FindPartOnRay = {Workspace, Workspace.FindPartOnRay, function(...)
+    local OldFindPartOnRay = HookedFunctions.FindPartOnRay[4]
+    if (AimbotSettings.SilentAim and Player and Aimlock and not checkcaller()) then
+        local PassedChance = random(1, 100) < AimbotSettings.SilentAimHitChance
+        if (ClosestCharacter and PassedChance) then
+            local Parts = GetPartsObscuringTarget(CurrentCamera, {CurrentCamera.CFrame.Position, Aimlock.Position}, {LocalPlayer.Character, ClosestCharacter});
+            if (#Parts == 0 or AimbotSettings.Wallbang) then
+                return Aimlock, Aimlock.Position + (Vector3new(random(1, 10), random(1, 10), random(1, 10)) / 10), Vector3new(0, 1, 0), Aimlock.Material
+            end
+        end
+    end
+    return OldFindPartOnRay(...);
+end};
+
+HookedFunctions.FindPartOnRayWithIgnoreList = {Workspace, Workspace.FindPartOnRayWithIgnoreList, function(...)
+    local OldFindPartOnRayWithIgnoreList = HookedFunctions.FindPartOnRayWithIgnoreList[4]
+    if (Player and Aimlock and not checkcaller()) then
+        local CallingScript = getcallingscript();
+        local PassedChance = random(1, 100) < AimbotSettings.SilentAimHitChance
+        if (CallingScript.Name ~= "ControlModule" and ClosestCharacter and PassedChance) then
+            local Parts = GetPartsObscuringTarget(CurrentCamera, {CurrentCamera.CFrame.Position, Aimlock.Position}, {LocalPlayer.Character, ClosestCharacter});
+            if (#Parts == 0 or AimbotSettings.Wallbang) then
+                return Aimlock, Aimlock.Position + (Vector3new(random(1, 10), random(1, 10), random(1, 10)) / 10), Vector3new(0, 1, 0), Aimlock.Material
+            end
+        end
+    end
+    return OldFindPartOnRayWithIgnoreList(...);
+end};
+
+for Index, Function in pairs(HookedFunctions) do
+    Function[4] = hookfunction(Function[2], Function[3]);
+end
+
 -- Initialize the UI with the purple theme
 local MainUI = UILibrary.new(Color3.fromRGB(67, 7, 241)); -- Hex #4307f1
 local Window = MainUI:LoadWindow('<font color="#4307f1">sways</font> method', UDim2.fromOffset(400, 279));
 local ESP = Window.NewPage("esp");
 local Aimbot = Window.NewPage("aimbot");
-local Config = Window.NewPage("config"); -- Added Config tab
 local EspSettingsUI = ESP.NewSection("Esp");
 local TracerSettingsUI = ESP.NewSection("Tracers");
 local SilentAim = Aimbot.NewSection("Silent Aim");
 local Aimbot = Aimbot.NewSection("Aimbot");
-local ConfigSettingsUI = Config.NewSection("Config"); -- Added Config section
-
--- Add Whitelist UI
-local WhitelistUI = Config.NewSection("Whitelist"); -- Added Whitelist section
-WhitelistUI.TextBox("Add Player", function(PlayerName)
-    if (PlayerName and not Tfind(Settings.Whitelist, PlayerName)) then
-        table.insert(Settings.Whitelist, PlayerName);
-    end
-end);
-WhitelistUI.TextBox("Remove Player", function(PlayerName)
-    if (PlayerName and Tfind(Settings.Whitelist, PlayerName)) then
-        table.remove(Settings.Whitelist, Tfind(Settings.Whitelist, PlayerName));
-    end
-end);
-
--- Add Config UI
-ConfigSettingsUI.TextBox("Save Config", function(ConfigName)
-    if (ConfigName) then
-        Settings.ConfigName = ConfigName;
-        SaveConfig(ConfigName);
-    end
-end);
-ConfigSettingsUI.Dropdown("Load Config", ListConfigs(), function(ConfigName)
-    if (ConfigName) then
-        Settings = GetConfig(ConfigName);
-    end
-end);
-ConfigSettingsUI.Button("Delete Config", function()
-    DeleteConfig(Settings.ConfigName);
-end);
 
 EspSettingsUI.Toggle("Show Names", EspSettings.NamesEnabled, function(Callback)
     EspSettings.NamesEnabled = Callback
