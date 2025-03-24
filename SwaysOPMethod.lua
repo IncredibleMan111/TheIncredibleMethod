@@ -545,10 +545,41 @@ local MainUI = UILibrary.new(Color3.fromRGB(67, 7, 241)); -- Hex #4307f1
 local Window = MainUI:LoadWindow('<font color="#4307f1">sways</font> method', UDim2.fromOffset(400, 279));
 local ESP = Window.NewPage("esp");
 local Aimbot = Window.NewPage("aimbot");
+local Config = Window.NewPage("config"); -- Added Config tab
 local EspSettingsUI = ESP.NewSection("Esp");
 local TracerSettingsUI = ESP.NewSection("Tracers");
 local SilentAim = Aimbot.NewSection("Silent Aim");
 local Aimbot = Aimbot.NewSection("Aimbot");
+local ConfigSettingsUI = Config.NewSection("Config"); -- Added Config section
+
+-- Add Whitelist UI
+local WhitelistUI = Config.NewSection("Whitelist"); -- Added Whitelist section
+WhitelistUI.TextBox("Add Player", function(PlayerName)
+    if (PlayerName and not Tfind(Settings.Whitelist, PlayerName)) then
+        table.insert(Settings.Whitelist, PlayerName);
+    end
+end);
+WhitelistUI.TextBox("Remove Player", function(PlayerName)
+    if (PlayerName and Tfind(Settings.Whitelist, PlayerName)) then
+        table.remove(Settings.Whitelist, Tfind(Settings.Whitelist, PlayerName));
+    end
+end);
+
+-- Add Config UI
+ConfigSettingsUI.TextBox("Save Config", function(ConfigName)
+    if (ConfigName) then
+        Settings.ConfigName = ConfigName;
+        SaveConfig(ConfigName);
+    end
+end);
+ConfigSettingsUI.Dropdown("Load Config", ListConfigs(), function(ConfigName)
+    if (ConfigName) then
+        Settings = GetConfig(ConfigName);
+    end
+end);
+ConfigSettingsUI.Button("Delete Config", function()
+    DeleteConfig(Settings.ConfigName);
+end);
 
 EspSettingsUI.Toggle("Show Names", EspSettings.NamesEnabled, function(Callback)
     EspSettings.NamesEnabled = Callback
