@@ -1,24 +1,25 @@
 if (not game:IsLoaded()) then
     game.Loaded:Wait();
 end
- 
+
+-- Load the UI library with the purple theme
 local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/IncredibleMan111/TheIncredibleMethod/refs/heads/main/SwaysUI.lua"))();
- 
+
 local PlaceId = game.PlaceId
- 
+
 local Players = game:GetService("Players");
 local HttpService = game:GetService("HttpService");
 local Workspace = game:GetService("Workspace");
 local Teams = game:GetService("Teams")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService");
- 
+
 local CurrentCamera = Workspace.CurrentCamera
 local WorldToViewportPoint = CurrentCamera.WorldToViewportPoint
 local GetPartsObscuringTarget = CurrentCamera.GetPartsObscuringTarget
- 
+
 local Inset = game:GetService("GuiService"):GetGuiInset().Y
- 
+
 local FindFirstChild = game.FindFirstChild
 local FindFirstChildWhichIsA = game.FindFirstChildWhichIsA
 local IsA = game.IsA
@@ -26,7 +27,7 @@ local Vector2new = Vector2.new
 local Vector3new = Vector3.new
 local CFramenew = CFrame.new
 local Color3new = Color3.new
- 
+
 local Tfind = table.find
 local create = table.create
 local format = string.format
@@ -36,7 +37,7 @@ local sub = string.sub
 local lower = string.lower
 local upper = string.upper
 local random = math.random
- 
+
 local DefaultSettings = {
     Esp = {
         NamesEnabled = false,
@@ -78,10 +79,10 @@ local DefaultSettings = {
         BlacklistedTeams = {}
     },
     WindowPosition = UDim2.new(0.5, -200, 0.5, -139);
- 
+
     Version = 1.2
 }
- 
+
 local EncodeConfig, DecodeConfig;
 do
     local deepsearchset;
@@ -100,7 +101,7 @@ do
             return new
         end
     end
- 
+
     DecodeConfig = function(Config)
         local DecodedConfig = deepsearchset(Config, function(Index, Value)
             return type(Value) == "table" and (Value.HSVColor or Value.Position);
@@ -118,7 +119,7 @@ do
         end);
         return DecodedConfig
     end
- 
+
     EncodeConfig = function(Config)
         local ToHSV = Color3new().ToHSV
         local EncodedConfig = deepsearchset(Config, function(Index, Value)
@@ -140,7 +141,7 @@ do
         return EncodedConfig
     end
 end
- 
+
 local GetConfig = function()
     local read, data = pcall(readfile, "SWAYSMENU.json");
     local canDecode, config = pcall(HttpService.JSONDecode, HttpService, data);
@@ -158,25 +159,25 @@ local GetConfig = function()
         return DefaultSettings
     end
 end
- 
+
 local Settings = GetConfig();
- 
+
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse();
 local MouseVector = Vector2new(Mouse.X, Mouse.Y);
 local Characters = {}
- 
+
 local CustomGet = {
     [0] = function()
         return {}
     end
 }
- 
+
 local Get;
 if (CustomGet[PlaceId]) then
     Get = CustomGet[PlaceId]();
 end
- 
+
 local GetCharacter = function(Player)
     if (Get) then
         return Get.GetCharacter(Player);
@@ -195,35 +196,35 @@ local CharacterRemoving = function(Player, Callback)
     end
     Player.CharacterRemoving:Connect(Callback);
 end
- 
+
 local GetTeam = function(Player)
     if (Get) then
         return Get.GetTeam(Player);
     end
     return Player.Team
 end
- 
+
 local Drawings = {}
- 
+
 local AimbotSettings = Settings.Aimbot
 local EspSettings = Settings.Esp
- 
+
 local FOV = Drawing.new("Circle");
 FOV.Color = AimbotSettings.FovColor
 FOV.Thickness = AimbotSettings.FovThickness
 FOV.Transparency = AimbotSettings.FovTransparency
 FOV.Filled = false
 FOV.Radius = AimbotSettings.FovSize
- 
+
 local Snaplines = Drawing.new("Line");
 Snaplines.Color = AimbotSettings.FovColor
 Snaplines.Thickness = .1
 Snaplines.Transparency = 1
 Snaplines.Visible = AimbotSettings.Snaplines
- 
+
 table.insert(Drawings, FOV);
 table.insert(Drawings, Snaplines);
- 
+
 local HandlePlayer = function(Player)
     local Character = GetCharacter(Player);
     if (Character) then
@@ -241,9 +242,9 @@ local HandlePlayer = function(Player)
             PlayerDrawings.Tracer.Visible = false
         end
     end);
- 
+
     if (Player == LocalPlayer) then return; end
- 
+
     local Text = Drawing.new("Text");
     Text.Color = EspSettings.Color
     Text.OutlineColor = EspSettings.OutlineColor
@@ -251,29 +252,29 @@ local HandlePlayer = function(Player)
     Text.Transparency = EspSettings.Transparency
     Text.Center = true
     Text.Outline = true
- 
+
     local Tracer = Drawing.new("Line");
     Tracer.Color = EspSettings.Color
     Tracer.From = Vector2new(CurrentCamera.ViewportSize.X / 2, CurrentCamera.ViewportSize.Y);
     Tracer.Thickness = EspSettings.TracerThickness
     Tracer.Transparency = EspSettings.TracerTrancparency
- 
+
     local Box = Drawing.new("Quad");
     Box.Thickness = EspSettings.Thickness
     Box.Transparency = EspSettings.Transparency
     Box.Filled = false
     Box.Color = EspSettings.Color
- 
+
     Drawings[Player] = { Text = Text, Tracer = Tracer, Box = Box }
 end
- 
+
 for Index, Player in pairs(Players:GetPlayers()) do
     HandlePlayer(Player);
 end
 Players.PlayerAdded:Connect(function(Player)
     HandlePlayer(Player);
 end);
- 
+
 Players.PlayerRemoving:Connect(function(Player)
     Characters[Player] = nil
     local PlayerDrawings = Drawings[Player]
@@ -282,7 +283,7 @@ Players.PlayerRemoving:Connect(function(Player)
     end
     Drawings[Player] = nil
 end);
- 
+
 local SetProperties = function(Properties)
     for Player, PlayerDrawings in pairs(Drawings) do
         if (type(Player) ~= "number") then
@@ -298,15 +299,15 @@ local SetProperties = function(Properties)
         end
     end
 end
- 
- 
+
+
 local GetClosestPlayerAndRender = function()
     MouseVector = Vector2new(Mouse.X, Mouse.Y + Inset);
     local Closest = create(4);
     local Vector2Distance = math.huge
     local Vector3DistanceOnScreen = math.huge
     local Vector3Distance = math.huge
- 
+
     if (AimbotSettings.ShowFov) then
         FOV.Position = MouseVector
         FOV.Visible = true
@@ -314,7 +315,7 @@ local GetClosestPlayerAndRender = function()
     else
         FOV.Visible = false
     end
- 
+
     local LocalRoot = Characters[LocalPlayer] and FindFirstChild(Characters[LocalPlayer], "HumanoidRootPart");
     for Player, Character in pairs(Characters) do
         if (Player == LocalPlayer) then continue; end
@@ -335,7 +336,7 @@ local GetClosestPlayerAndRender = function()
             local Vector2Magnitude = (MouseVector - CharacterVec2).Magnitude
             local Vector3Magnitude = LocalRoot and (RedirectPos - LocalRoot.Position).Magnitude or math.huge
             local InRenderDistance = Vector3Magnitude <= EspSettings.RenderDistance
- 
+
             if (not Tfind(AimbotSettings.BlacklistedTeams, PlayerTeam)) then
                 local InFovRadius = Vector2Magnitude <= FOV.Radius
                 if (InFovRadius) then
@@ -350,14 +351,14 @@ local GetClosestPlayerAndRender = function()
                             Snaplines.Visible = false
                         end
                     end
- 
+
                     if (Visible and Vector3Magnitude <= Vector3DistanceOnScreen and Settings.ClosestPlayer) then
                         Vector3DistanceOnScreen = Vector3Magnitude
                         Closest = {Character, CharacterVec2, Player, Redirect}
                     end
                 end
             end
- 
+
             if (InRenderDistance and Visible and not Tfind(EspSettings.BlacklistedTeams, PlayerTeam)) then
                 local CharacterHumanoid = FindFirstChildWhichIsA(Character, "Humanoid") or { Health = 0, MaxHealth = 0 };
                 PlayerDrawings.Text.Text = format("%s\n%s%s",
@@ -370,13 +371,13 @@ local GetClosestPlayerAndRender = function()
                             floor(CharacterHumanoid.MaxHealth)
                         )  or ""
                     );
- 
+
                 PlayerDrawings.Text.Position = Vector2new(Tuple.X, Tuple.Y - 40);
- 
+
                 if (EspSettings.TracersEnabled) then
                     PlayerDrawings.Tracer.To = CharacterVec2
                 end
- 
+
                 if (EspSettings.BoxEsp) then
                     local Parts = {}
                     for Index, Part in pairs(Character:GetChildren()) do
@@ -385,7 +386,7 @@ local GetClosestPlayerAndRender = function()
                             Parts[Part] = Vector2new(ViewportPos.X, ViewportPos.Y);
                         end
                     end
- 
+
                     local Top, Bottom, Left, Right
                     local Distance = math.huge
                     local ClosestPart = nil
@@ -429,13 +430,13 @@ local GetClosestPlayerAndRender = function()
                     Right = ClosestPart
                     ClosestPart = nil
                     Distance = math.huge
- 
+
                     PlayerDrawings.Box.PointA = Vector2new(Right.X, Top.Y);
                     PlayerDrawings.Box.PointB = Vector2new(Left.X, Top.Y);
                     PlayerDrawings.Box.PointC = Vector2new(Left.X, Bottom.Y);
                     PlayerDrawings.Box.PointD = Vector2new(Right.X, Bottom.Y);
                 end
- 
+
                 if (EspSettings.TeamColors) then
                     local TeamColor;
                     if (PlayerTeam) then
@@ -448,7 +449,7 @@ local GetClosestPlayerAndRender = function()
                     PlayerDrawings.Box.Color = TeamColor
                     PlayerDrawings.Tracer.Color = TeamColor
                 end
- 
+
                 PlayerDrawings.Text.Visible = true
                 PlayerDrawings.Box.Visible = EspSettings.BoxEsp
                 PlayerDrawings.Tracer.Visible = EspSettings.TracersEnabled
@@ -463,10 +464,10 @@ local GetClosestPlayerAndRender = function()
             PlayerDrawings.Tracer.Visible = false
         end
     end
- 
+
     return unpack(Closest);
 end
- 
+
 local Locked, SwitchedCamera = false, false
 UserInputService.InputBegan:Connect(function(Inp)
     if (AimbotSettings.Enabled and Inp.UserInputType == Enum.UserInputType.MouseButton2) then
@@ -485,7 +486,7 @@ UserInputService.InputEnded:Connect(function(Inp)
         end
     end
 end);
- 
+
 local ClosestCharacter, Vector, Player, Aimlock;
 RunService.RenderStepped:Connect(function()
     ClosestCharacter, Vector, Player, Aimlock = GetClosestPlayerAndRender();
@@ -501,32 +502,32 @@ RunService.RenderStepped:Connect(function()
         end
     end
 end);
- 
+
 local Hooks = {
     HookedFunctions = {},
     OldMetaMethods = {},
     MetaMethodHooks = {},
     HookedSignals = {}
 }
- 
+
 local OtherDeprecated = {
     children = "GetChildren"
 }
- 
+
 local RealMethods = {}
 local FakeMethods = {}
- 
+
 local HookedFunctions = Hooks.HookedFunctions
 local MetaMethodHooks = Hooks.MetaMethodHooks
 local OldMetaMethods = Hooks.OldMetaMethods
- 
+
 local randomised = random(1, 10);
 local randomisedVector = Vector3new(random(1, 10), random(1, 10), random(1, 10));
 Mouse.Move:Connect(function()
     randomised = random(1, 10);
     randomisedVector = Vector3new(random(1, 10), random(1, 10), random(1, 10));
 end);
- 
+
 local x = setmetatable({}, {
     __index = function(...)
         print("index", ...);
@@ -541,16 +542,16 @@ local x = setmetatable({}, {
         print("mul", ...);
     end
 });
- 
+
 MetaMethodHooks.Index = function(...)
     local __Index = OldMetaMethods.__index
- 
+
     if (Player and Aimlock and ... == Mouse and not checkcaller()) then
         local CallingScript = getfenv(2).script;
         if (CallingScript.Name == "CallingScript") then
             return __Index(...);
         end
- 
+
         local _Mouse, Index = ...
         if (type(Index) == 'string') then
             Index = gsub(sub(Index, 0, 100), "%z.*", "");
@@ -558,7 +559,7 @@ MetaMethodHooks.Index = function(...)
         local PassedChance = random(1, 100) < AimbotSettings.SilentAimHitChance
         if (PassedChance and AimbotSettings.SilentAim) then
             local Parts = GetPartsObscuringTarget(CurrentCamera, {CurrentCamera.CFrame.Position, Aimlock.Position}, {LocalPlayer.Character, ClosestCharacter});
- 
+
             Index = string.gsub(Index, "^%l", upper);
             local Hit = #Parts == 0 or AimbotSettings.Wallbang
             if (not Hit) then
@@ -580,10 +581,10 @@ MetaMethodHooks.Index = function(...)
             end
         end
     end
- 
+
     return __Index(...);
 end
- 
+
 MetaMethodHooks.Namecall = function(...)
     local __Namecall = OldMetaMethods.__namecall
     local self = ...
@@ -592,15 +593,15 @@ MetaMethodHooks.Namecall = function(...)
     if (Hooked and self == Hooked[1]) then
         return Hooked[3](...);
     end
- 
+
     return __Namecall(...);
 end
- 
+
 for MMName, MMFunc in pairs(MetaMethodHooks) do
     local MetaMethod = string.format("__%s", string.lower(MMName));
     Hooks.OldMetaMethods[MetaMethod] = hookmetamethod(game, MetaMethod, MMFunc);
 end
- 
+
 HookedFunctions.FindPartOnRay = {Workspace, Workspace.FindPartOnRay, function(...)
     local OldFindPartOnRay = HookedFunctions.FindPartOnRay[4]
     if (AimbotSettings.SilentAim and Player and Aimlock and not checkcaller()) then
@@ -614,7 +615,7 @@ HookedFunctions.FindPartOnRay = {Workspace, Workspace.FindPartOnRay, function(..
     end
     return OldFindPartOnRay(...);
 end};
- 
+
 HookedFunctions.FindPartOnRayWithIgnoreList = {Workspace, Workspace.FindPartOnRayWithIgnoreList, function(...)
     local OldFindPartOnRayWithIgnoreList = HookedFunctions.FindPartOnRayWithIgnoreList[4]
     if (Player and Aimlock and not checkcaller()) then
@@ -629,20 +630,21 @@ HookedFunctions.FindPartOnRayWithIgnoreList = {Workspace, Workspace.FindPartOnRa
     end
     return OldFindPartOnRayWithIgnoreList(...);
 end};
- 
+
 for Index, Function in pairs(HookedFunctions) do
     Function[4] = hookfunction(Function[2], Function[3]);
 end
- 
-local MainUI = UILibrary.new(Color3.fromRGB(255, 79, 87));
-local Window = MainUI:LoadWindow('<font color="#ff4f57">sways</font> method', UDim2.fromOffset(400, 279));
+
+-- Initialize the UI with the purple theme
+local MainUI = UILibrary.new(Color3.fromRGB(67, 7, 241)); -- Hex #4307f1
+local Window = MainUI:LoadWindow('<font color="#4307f1">sways</font> method', UDim2.fromOffset(400, 279));
 local ESP = Window.NewPage("esp");
 local Aimbot = Window.NewPage("aimbot");
 local EspSettingsUI = ESP.NewSection("Esp");
 local TracerSettingsUI = ESP.NewSection("Tracers");
 local SilentAim = Aimbot.NewSection("Silent Aim");
 local Aimbot = Aimbot.NewSection("Aimbot");
- 
+
 EspSettingsUI.Toggle("Show Names", EspSettings.NamesEnabled, function(Callback)
     EspSettings.NamesEnabled = Callback
 end);
@@ -706,7 +708,7 @@ TracerSettingsUI.Slider("Tracer Thickness", {Min = 0, Max = 5, Default = EspSett
     EspSettings.TracerThickness = Callback
     SetProperties({ Tracer = { Thickness = Callback } });
 end);
- 
+
 SilentAim.Toggle("Silent Aim", AimbotSettings.SilentAim, function(Callback)
     AimbotSettings.SilentAim = Callback
 end);
@@ -719,7 +721,7 @@ end);
 SilentAim.Slider("Hit Chance", {Min = 0, Max = 100, Default = AimbotSettings.SilentAimHitChance, Step = 1}, function(Callback)
     AimbotSettings.SilentAimHitChance = Callback
 end);
- 
+
 SilentAim.Dropdown("Lock Type", {"Closest Cursor"}, function(Callback)
     if (Callback == "Closest Cursor") then
         AimbotSettings.ClosestCharacter = false
@@ -729,7 +731,7 @@ SilentAim.Dropdown("Lock Type", {"Closest Cursor"}, function(Callback)
         AimbotSettings.ClosestCursor = true
     end
 end);
- 
+
 Aimbot.Toggle("Aimbot (M2)", AimbotSettings.Enabled, function(Callback)
     AimbotSettings.Enabled = Callback
     if (not AimbotSettings.FirstPerson and not AimbotSettings.ThirdPerson) then
@@ -761,7 +763,7 @@ Aimbot.Dropdown("Aimlock Type", {"First Person"}, function(callback)
         AimbotSettings.FirstPerson = true
     end
 end);
- 
+
 Aimbot.Toggle("Show Fov", AimbotSettings.ShowFov, function(Callback)
     AimbotSettings.ShowFov = Callback
     FOV.Visible = Callback
@@ -779,7 +781,7 @@ Aimbot.Toggle("Enable Snaplines", AimbotSettings.Snaplines, function(Callback)
     AimbotSettings.Snaplines = Callback
 end);
 Window.SetPosition(Settings.WindowPosition);
- 
+
 if (gethui) then
     MainUI.UI.Parent = gethui();
 else
@@ -789,7 +791,7 @@ else
     end
     MainUI.UI.Parent = game:GetService("CoreGui");
 end
- 
+
 while wait(5) do
     Settings.WindowPosition = Window.GetPosition();
     local Encoded = HttpService:JSONEncode(EncodeConfig(Settings));
