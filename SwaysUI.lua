@@ -987,24 +987,83 @@ function UILibrary:LoadWindow(Title, Size)
 
             -- Add TextBox for Whitelist
             function ElementLibrary.TextBox(Title, Callback)
-                local TextBox = Clone(GuiObjects.Elements.TextBox);
-                TextBox.Title.Text = Title
-                TextBox.Parent = Section.Options
+                local TextBoxContainer = Instance.new("Frame")
+                local UICorner = Instance.new("UICorner")
+                local TitleLabel = Instance.new("TextLabel")
+                local InputBox = Instance.new("TextBox")
 
-                AddConnection(CConnect(TextBox.Input.FocusLost, function()
-                    Callback(TextBox.Input.Text);
+                -- Configure TextBoxContainer
+                TextBoxContainer.Name = "TextBoxContainer"
+                TextBoxContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                TextBoxContainer.Size = UDim2.new(1, -10, 0, 30)
+                TextBoxContainer.Position = UDim2.new(0, 5, 0, 0)
+                TextBoxContainer.BorderSizePixel = 0
+
+                -- Add UICorner
+                UICorner.CornerRadius = UDim.new(0, 4)
+                UICorner.Parent = TextBoxContainer
+
+                -- Configure TitleLabel
+                TitleLabel.Name = "TitleLabel"
+                TitleLabel.Text = Title
+                TitleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                TitleLabel.TextSize = 14
+                TitleLabel.Font = Enum.Font.Gotham
+                TitleLabel.BackgroundTransparency = 1
+                TitleLabel.Size = UDim2.new(0.5, 0, 1, 0)
+                TitleLabel.Position = UDim2.new(0, 5, 0, 0)
+                TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                TitleLabel.Parent = TextBoxContainer
+
+                -- Configure InputBox
+                InputBox.Name = "InputBox"
+                InputBox.PlaceholderText = "Enter text..."
+                InputBox.Text = ""
+                InputBox.TextColor3 = Color3.fromRGB(200, 200, 200)
+                InputBox.TextSize = 14
+                InputBox.Font = Enum.Font.Gotham
+                InputBox.BackgroundTransparency = 1
+                InputBox.Size = UDim2.new(0.5, -10, 1, 0)
+                InputBox.Position = UDim2.new(0.5, 5, 0, 0)
+                InputBox.TextXAlignment = Enum.TextXAlignment.Left
+                InputBox.Parent = TextBoxContainer
+
+                -- Add FocusLost event
+                AddConnection(CConnect(InputBox.FocusLost, function()
+                    Callback(InputBox.Text);
                 end));
+
+                -- Add to Section
+                TextBoxContainer.Parent = Section.Options
             end
 
             -- Add Button for Config
             function ElementLibrary.Button(Title, Callback)
-                local Button = Clone(GuiObjects.Elements.Button);
-                Button.Title.Text = Title
-                Button.Parent = Section.Options
+                local Button = Instance.new("TextButton")
+                local UICorner = Instance.new("UICorner")
 
+                -- Configure Button
+                Button.Name = "Button"
+                Button.Text = Title
+                Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+                Button.TextSize = 14
+                Button.Font = Enum.Font.Gotham
+                Button.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                Button.Size = UDim2.new(1, -10, 0, 30)
+                Button.Position = UDim2.new(0, 5, 0, 0)
+                Button.BorderSizePixel = 0
+
+                -- Add UICorner
+                UICorner.CornerRadius = UDim.new(0, 4)
+                UICorner.Parent = Button
+
+                -- Add Click event
                 AddConnection(CConnect(Button.MouseButton1Click, function()
                     Callback();
                 end));
+
+                -- Add to Section
+                Button.Parent = Section.Options
             end
 
             return ElementLibrary
