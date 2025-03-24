@@ -545,40 +545,160 @@ local MainUI = UILibrary.new(Color3.fromRGB(67, 7, 241)); -- Hex #4307f1
 local Window = MainUI:LoadWindow('<font color="#4307f1">sways</font> method', UDim2.fromOffset(400, 279));
 local ESP = Window.NewPage("esp");
 local Aimbot = Window.NewPage("aimbot");
-local Config = Window.NewPage("config");
 local EspSettingsUI = ESP.NewSection("Esp");
 local TracerSettingsUI = ESP.NewSection("Tracers");
 local SilentAim = Aimbot.NewSection("Silent Aim");
 local Aimbot = Aimbot.NewSection("Aimbot");
-local ConfigSettingsUI = Config.NewSection("Config");
 
--- Add Whitelist UI
-local WhitelistUI = Config.NewSection("Whitelist");
-WhitelistUI.TextBox("Add Player", function(PlayerName)
-    if (PlayerName and not Tfind(Settings.Whitelist, PlayerName)) then
-        table.insert(Settings.Whitelist, PlayerName);
+EspSettingsUI.Toggle("Show Names", EspSettings.NamesEnabled, function(Callback)
+    EspSettings.NamesEnabled = Callback
+end);
+EspSettingsUI.Toggle("Show Health", EspSettings.HealthEnabled, function(Callback)
+    EspSettings.HealthEnabled = Callback
+end);
+EspSettingsUI.Toggle("Show Distance", EspSettings.DistanceEnabled, function(Callback)
+    EspSettings.DistanceEnabled = Callback
+end);
+EspSettingsUI.Toggle("Box Esp", EspSettings.BoxEsp, function(Callback)
+    EspSettings.BoxEsp = Callback
+    SetProperties({ Box = { Visible = Callback } });
+end);
+EspSettingsUI.Slider("Render Distance", { Min = 0, Max = 50000, Default = math.clamp(EspSettings.RenderDistance, 0, 50000), Step = 10 }, function(Callback)
+    EspSettings.RenderDistance = Callback
+end);
+EspSettingsUI.Slider("Esp Size", { Min = 0, Max = 30, Default = EspSettings.Size, Step = 1}, function(Callback)
+    EspSettings.Size = Callback
+    SetProperties({ Text = { Size = Callback } });
+end);
+EspSettingsUI.ColorPicker("Esp Color", EspSettings.Color, function(Callback)
+    EspSettings.TeamColors = false
+    EspSettings.Color = Callback
+    SetProperties({ Box = { Color = Callback }, Text = { Color = Callback }, Tracer = { Color = Callback } });
+end);
+EspSettingsUI.Toggle("Team Colors", EspSettings.TeamColors, function(Callback)
+    EspSettings.TeamColors = Callback
+    if (not Callback) then
+        SetProperties({ Tracer = { Color = EspSettings.Color }; Box = { Color = EspSettings.Color }; Text = { Color = EspSettings.Color }  })
     end
 end);
-WhitelistUI.TextBox("Remove Player", function(PlayerName)
-    if (PlayerName and Tfind(Settings.Whitelist, PlayerName)) then
-        table.remove(Settings.Whitelist, Tfind(Settings.Whitelist, PlayerName));
+EspSettingsUI.Dropdown("Teams", {"Allies", "Enemies", "All"}, function(Callback)
+    table.clear(EspSettings.BlacklistedTeams);
+    if (Callback == "Enemies") then
+        table.insert(EspSettings.BlacklistedTeams, LocalPlayer.Team);
+    end
+    if (Callback == "Allies") then
+        local AllTeams = Teams:GetTeams();
+        table.remove(AllTeams, table.find(AllTeams, LocalPlayer.Team));
+        EspSettings.BlacklistedTeams = AllTeams
+    end
+end);
+TracerSettingsUI.Toggle("Enable Tracers", EspSettings.TracersEnabled, function(Callback)
+    EspSettings.TracersEnabled = Callback
+    SetProperties({ Tracer = { Visible = Callback } });
+end);
+TracerSettingsUI.Dropdown("To", {"Head", "Torso"}, function(Callback)
+    AimbotSettings.Aimlock = Callback == "Torso" and "HumanoidRootPart" or Callback
+end);
+TracerSettingsUI.Dropdown("From", {"Top", "Bottom", "Left", "Right"}, function(Callback)
+    local ViewportSize = CurrentCamera.ViewportSize
+    local From = Callback == "Top" and Vector2new(ViewportSize.X / 2, ViewportSize.Y - ViewportSize.Y) or Callback == "Bottom" and Vector2new(ViewportSize.X / 2, ViewportSize.Y) or Callback == "Left" and Vector2new(ViewportSize.X - ViewportSize.X, ViewportSize.Y / 2) or Callback == "Right" and Vector2new(ViewportSize.X, ViewportSize.Y / 2);
+    EspSettings.TracerFrom = From
+    SetProperties({ Tracer = { From = From } });
+end);
+TracerSettingsUI.Slider("Tracer Transparency", {Min = 0, Max = 1, Default = EspSettings.TracerTrancparency, Step = .1}, function(Callback)
+    EspSettings.TracerTrancparency = Callback
+    SetProperties({ Tracer = { Transparency = Callback } });
+end);
+TracerSettingsUI.Slider("Tracer Thickness", {Min = 0, Max = 5, Default = EspSettings.TracerThickness, Step = .1}, function(Callback)
+    EspSettings.TracerThickness = Callback
+    SetProperties({ Tracer = { Thickness = Callback } });
+end);
+
+SilentAim.Toggle("Silent Aim", AimbotSettings.SilentAim, function(Callback)
+    AimbotSettings.SilentAim = Callback
+end);
+SilentAim.Toggle("Wallbang", AimbotSettings.Wallbang, function(Callback)
+    AimbotSettings.Wallbang = Callback
+end);
+SilentAim.Dropdown("Redirect", {"Head", "Torso"}, function(Callback)
+    AimbotSettings.SilentAimRedirect = Callback
+end);
+SilentAim.Slider("Hit Chance", {Min = 0, Max = 100, Default = AimbotSettings.SilentAimHitChance, Step = 1}, function(Callback)
+    AimbotSettings.SilentAimHitChance = Callback
+end);
+
+SilentAim.Dropdown("Lock Type", {"Closest Cursor"}, function(Callback)
+    if (Callback == "Closest Cursor") then
+        AimbotSettings.ClosestCharacter = false
+        AimbotSettings.ClosestCursor = true
+    else
+        AimbotSettings.ClosestCharacter = false
+        AimbotSettings.ClosestCursor = true
     end
 end);
 
--- Add Config UI
-ConfigSettingsUI.TextBox("Save Config", function(ConfigName)
-    if (ConfigName) then
-        Settings.ConfigName = ConfigName;
-        SaveConfig(ConfigName);
+Aimbot.Toggle("Aimbot (M2)", AimbotSettings.Enabled, function(Callback)
+    AimbotSettings.Enabled = Callback
+    if (not AimbotSettings.FirstPerson and not AimbotSettings.ThirdPerson) then
+        AimbotSettings.FirstPerson = true
     end
 end);
-ConfigSettingsUI.Dropdown("Load Config", ListConfigs(), function(ConfigName)
-    if (ConfigName) then
-        Settings = GetConfig(ConfigName);
-    end
+Aimbot.Slider("Aimbot Smoothness", {Min = 1, Max = 10, Default = AimbotSettings.Smoothness, Step = .5}, function(Callback)
+    AimbotSettings.Smoothness = Callback
 end);
-ConfigSettingsUI.Button("Delete Config", function()
-    DeleteConfig(Settings.ConfigName);
+local sortTeams = function(Callback)
+    table.clear(AimbotSettings.BlacklistedTeams);
+    if (Callback == "Enemies") then
+        table.insert(AimbotSettings.BlacklistedTeams, LocalPlayer.Team);
+    end
+    if (Callback == "Allies") then
+        local AllTeams = Teams:GetTeams();
+        table.remove(AllTeams, table.find(AllTeams, LocalPlayer.Team));
+        AimbotSettings.BlacklistedTeams = AllTeams
+    end
+end
+Aimbot.Dropdown("Team Target", {"All"}, sortTeams);
+sortTeams("Enemies");
+Aimbot.Dropdown("Aimlock Type", {"First Person"}, function(callback)
+    if (callback == "First Person") then
+        AimbotSettings.ThirdPerson = false
+        AimbotSettings.FirstPerson = true
+    else
+        AimbotSettings.ThirdPerson = false
+        AimbotSettings.FirstPerson = true
+    end
 end);
 
--- Rest of the UI code remains the same...
+Aimbot.Toggle("Show Fov", AimbotSettings.ShowFov, function(Callback)
+    AimbotSettings.ShowFov = Callback
+    FOV.Visible = Callback
+end);
+Aimbot.ColorPicker("Fov Color", AimbotSettings.FovColor, function(Callback)
+    AimbotSettings.FovColor = Callback
+    FOV.Color = Callback
+    Snaplines.Color = Callback
+end);
+Aimbot.Slider("Fov Size", {Min = 0, Max = 500, Default = AimbotSettings.FovSize, Step = 5}, function(Callback)
+    AimbotSettings.FovSize = Callback
+    FOV.Radius = Callback
+end);
+Aimbot.Toggle("Enable Snaplines", AimbotSettings.Snaplines, function(Callback)
+    AimbotSettings.Snaplines = Callback
+end);
+Window.SetPosition(Settings.WindowPosition);
+
+if (gethui) then
+    MainUI.UI.Parent = gethui();
+else
+    local protect_gui = (syn or getgenv()).protect_gui
+    if (protect_gui) then
+        protect_gui(MainUI.UI);
+    end
+    MainUI.UI.Parent = game:GetService("CoreGui");
+end
+
+while wait(5) do
+    Settings.WindowPosition = Window.GetPosition();
+    local Encoded = HttpService:JSONEncode(EncodeConfig(Settings));
+    writefile("SWAYSMENU.json", Encoded);
+end
