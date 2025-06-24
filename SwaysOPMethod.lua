@@ -1,1 +1,1 @@
-print("Bypass failed, try again later!")
+print("Executor not supported. Bypass failed.")
