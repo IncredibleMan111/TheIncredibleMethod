@@ -1,1 +1,1 @@
-print("Sike dumbass")
+print("Bypass failed, try again later!")
