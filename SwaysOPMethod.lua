@@ -1,28 +1,4 @@
-do -- bypass
-    for i, v in next, getgc(true) do
-        if type(v) == 'table' then
-            local success = pcall(function()
-                if rawget(v, "namecallInstance") and rawget(v, "newindexInstance") and rawget(v, "indexInstance") and rawget(v, "indexEnum") and rawget(v, "namecallEnum") and rawget(v, "eqEnum") then
-                    rawset(v, "namecallInstance", nil)
-                    rawset(v, "newindexInstance", nil)
-                    rawset(v, "indexInstance", nil)
-                    rawset(v, "indexEnum", nil)
-                    rawset(v, "namecallEnum", nil)
-                    rawset(v, "eqEnum", nil)
-                end
-            end)
-            if not success then
-                warn("Skipped read-only table in GC")
-            end
-        end
-    end
-end
-if (not game:IsLoaded()) then
-     game.Loaded:Wait();
- end
-  
- 
- -- Load the UI library with the purple theme
+-- Load the UI library with the purple theme
  local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/IncredibleMan111/TheIncredibleMethod/refs/heads/main/SwaysUI.lua"))();
   
  
@@ -893,3 +869,4 @@ if (not game:IsLoaded()) then
      local Encoded = HttpService:JSONEncode(EncodeConfig(Settings));
      writefile("SWAYSMENU.json", Encoded);
  end
+
