@@ -1,3 +1,5 @@
+-- Execute bypass first
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua",true))()
 
  -- Load the UI library with the purple theme
  local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/IncredibleMan111/TheIncredibleMethod/refs/heads/main/SwaysUI.lua"))();
@@ -870,3 +872,4 @@
      local Encoded = HttpService:JSONEncode(EncodeConfig(Settings));
      writefile("SWAYSMENU.json", Encoded);
  end
+
