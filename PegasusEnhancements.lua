@@ -1,8 +1,13 @@
 -- Execute bypass first
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua",true))()
 
+if (not game:IsLoaded()) then
+     game.Loaded:Wait();
+ end
+  
+ 
  -- Load the UI library with the purple theme
- local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/IncredibleMan111/TheIncredibleMethod/refs/heads/main/PegasusUI.lua"))();
+local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/IncredibleMan111/TheIncredibleMethod/refs/heads/main/PegasusUI.lua"))();
   
  
  local PlaceId = game.PlaceId
@@ -75,10 +80,10 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries
          ClosestCharacter = false,
          ClosestCursor = true,
          Smoothness = 1,
-         SilentAimHitChance = 24,
+         SilentAimHitChance = 23,
          FovThickness = 1,
          FovTransparency = 1,
-         FovSize = 35,
+         FovSize = 15,
          FovColor = Color3new(1, 1, 1),
          Aimlock = "Head",
          SilentAimRedirect = "Head",
@@ -154,19 +159,19 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries
   
  
  local GetConfig = function()
-     local read, data = pcall(readfile, "PEGASUSMENU.json");
+     local read, data = pcall(readfile, "PGEnhancements.json");
      local canDecode, config = pcall(HttpService.JSONDecode, HttpService, data);
      if (read and canDecode) then
          local Decoded = DecodeConfig(config);
          if (Decoded.Version ~= DefaultSettings.Version) then
              local Encoded = HttpService:JSONEncode(EncodeConfig(DefaultSettings));
-             writefile("PEGASUSMENU.json", Encoded);
+             writefile("PGEnhancements.json", Encoded);
              return DefaultSettings;
          end
          return Decoded;
      else
          local Encoded = HttpService:JSONEncode(EncodeConfig(DefaultSettings));
-         writefile("PEGASUSMENU.json", Encoded);
+         writefile("PGEnhancements.json", Encoded);
          return DefaultSettings
      end
  end
@@ -701,11 +706,11 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries
  end
   
  local MainUI = UILibrary.new(Color3.fromRGB(255, 79, 87));
- local Window = MainUI:LoadWindow('<font color="#ff4f57">Pegasus</font> Enhancements', UDim2.fromOffset(400, 279));
+ local Window = MainUI:LoadWindow('<font color="#4307f1">PG</font> Lua', UDim2.fromOffset(400, 279));
  
  -- Initialize the UI with the purple theme
  local MainUI = UILibrary.new(Color3.fromRGB(67, 7, 241)); -- Hex #4307f1
- local Window = MainUI:LoadWindow('<font color="#4307f1">Pegasus</font> Enhancements', UDim2.fromOffset(400, 279));
+ local Window = MainUI:LoadWindow('<font color="#4307f1">PG</font> Lua', UDim2.fromOffset(400, 279));
  local ESP = Window.NewPage("esp");
  local Aimbot = Window.NewPage("aimbot");
  local EspSettingsUI = ESP.NewSection("Esp");
@@ -846,7 +851,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries
      FOV.Color = Callback
      Snaplines.Color = Callback
  end);
- Aimbot.Slider("Fov Size", {Min = 0, Max = 500, Default = AimbotSettings.FovSize, Step = 5}, function(Callback)
+ Aimbot.Slider("Fov Size", {Min = 0, Max = 100, Default = AimbotSettings.FovSize, Step = 5}, function(Callback)
      AimbotSettings.FovSize = Callback
      FOV.Radius = Callback
  end);
@@ -870,5 +875,5 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries
  while wait(5) do
      Settings.WindowPosition = Window.GetPosition();
      local Encoded = HttpService:JSONEncode(EncodeConfig(Settings));
-     writefile("PEGASUSMENU.json", Encoded);
+     writefile("PGEnhancements.json", Encoded);
  end
